@@ -8,6 +8,7 @@ int yylex(void);
 void yyerror(const char*);
 
 char* string_add_front(const char* prefix, const char* delimiter, const char* str);
+void print_text_element(const char* element, const char* content);
 
 %}
 
@@ -105,7 +106,8 @@ property:   '-' _NAME '=' { printf("<%s>", $2); } definition { printf("</%s>\n",
             }
             | '-' _NAME '=' _STRING_LITERAL ';'
             {
-                printf("<%s><![CDATA[%s]]></%s>\n", $2, $4, $2);
+                //printf("<%s>%s</%s>\n", $2, $4, $2);
+                print_text_element($2, $4);
             }
             | '-' _NAME '=' _TYPE_CHAR ';'
             {
@@ -117,7 +119,8 @@ property:   '-' _NAME '=' { printf("<%s>", $2); } definition { printf("</%s>\n",
             }
             | '-' _TEXTRTF_STR '=' _STRING_LITERAL ';'
             {
-                printf("<_textRTF><![CDATA[%s]]></_textRTF>\n", $4);
+                //printf("<_textRTF><![CDATA[%s]]></_textRTF>\n", $4);
+                print_text_element("_textRTF", $4);
             }
              | definition
             ;

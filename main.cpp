@@ -22,11 +22,46 @@ extern "C"
 
     extern int yydebug;
 
-    const char* strip_string_quotes(char* str)
+    char* strip_string_quotes(char* str)
     {
         const int len = strlen(str);
         str[len - 1] = '\0';
         return str + 1;
+    }
+
+    // Creates a copy of the string with unescaped strings (backslashes removed).
+    char* process_string_literal(const char* str)
+    {
+        char* output = (char*) malloc(strlen(str)+1);
+        const char* inPtr = str;
+        char* outPtr = output;
+
+        // Skip the initial "
+        if (*inPtr == '\"') {
+            ++inPtr;
+        }
+
+        while (*inPtr != '\0')
+        {
+            // If we encounter a backslash and we're not at the end of the string:
+            // skip it and blindly write the character directly after it
+            if ( (*inPtr == '\\') && (*(inPtr+1) != '\0') ) {
+                ++inPtr;
+            }
+
+            // Copy the char
+            *outPtr++ = *inPtr++;
+        }
+
+        // Remove the final "
+        if ( (outPtr > output) && (*(outPtr-1) == '\"') ) {
+            --outPtr;
+        }
+
+        // Terminate the modified string.
+        *outPtr = '\0';
+
+        return output;
     }
     
     void print_xml_special_characters(const char* str)
@@ -45,6 +80,14 @@ extern "C"
                 default: printf("%c", c);
             }
         }
+    }
+
+    void print_text_element(const char* element, const char* content) {
+        char* unescapedStr = process_string_literal(content);
+        printf("<%s>", element);
+        print_xml_special_characters(unescapedStr);
+        printf("</%s>\n", element);
+        free(unescapedStr);
     }
     
     // Creates new string with prefix
