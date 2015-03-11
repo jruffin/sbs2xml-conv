@@ -20,32 +20,48 @@
 # Version 0.1, April 2013 - concept developed.
 
 # Uncomment below if you have problem with Make on Windows
-SHELL=C:/Windows/System32/cmd.exe
+#SHELL=C:/Windows/System32/cmd.exe
 
-CPP=g++ -O2 -fpermissive
-CC=gcc -O2
+TARGET=i686-pc-mingw32
+CPP=$(TARGET)-g++ -O2 -fpermissive
+CC=$(TARGET)-gcc -O2
+CXX=$(TARGET)-g++
+LD=$(TARGET)-g++ -mconsole -static
+
 YACC=bison -d
 LEXX=flex
 GAWK=gawk
 EXECUTABLE_NAME=sbs2xml
 
 SOURCE = main.cpp
-YACC_LEXX_SOURCE = lex.yy.c grama.tab.c
-OBJS = $(patsubst %.c, %.o, $(YACC_LEXX_SOURCE)) $(patsubst %.cpp, %.o, $(SOURCE))
+FLEX_OUTPUT = lex.yy.c
+YACC_OUTPUT = grama.tab.c
+OBJS = $(patsubst %.c, %.o, $(FLEX_OUTPUT)) $(patsubst %.c, %.o, $(YACC_OUTPUT)) $(patsubst %.cpp, %.o, $(SOURCE))
 
-flex:
+.DEFAULT: all
+.PHONY: all flex bison clean
+
+all: ${EXECUTABLE_NAME}.exe
+
+${FLEX_OUTPUT}:
 	${LEXX} lexer.l
-	${GAWK} "/#define YY_BUF_SIZE/{gsub(/16384/, "(1024*1024)")};{print}" lex.yy.c > lex.yy.c.new
+	${GAWK} "/#define YY_BUF_SIZE/{gsub(/16384/, \"(1024*1024)\")};{print}" lex.yy.c > lex.yy.c.new
 	rm -f lex.yy.c
 	mv lex.yy.c.new lex.yy.c
 
-bison:
+${YACC_OUTPUT}: ${FLEX_OUTPUT}
 	$(YACC) grama.y
 
-all: flex bison ${OBJS}
-	${CC} ${YACC_LEXX_SOURCE} -c
+flex : ${FLEX_OUTPUT}
+
+bison: ${YACC_OUTPUT}
+
+${OBJS}: ${SOURCES} ${FLEX_OUTPUT} ${YACC_OUTPUT}
+	${CC} ${FLEX_OUTPUT} ${YACC_OUTPUT} -c
 	${CPP} ${SOURCE} -c
-	${CPP} -s ${OBJS} -o ${EXECUTABLE_NAME}.exe
+
+${EXECUTABLE_NAME}.exe : ${OBJS}
+	${LD} -s ${OBJS} -o ${EXECUTABLE_NAME}.exe
 
 clean:
 	rm -f *.o
