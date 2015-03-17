@@ -42,6 +42,9 @@ void print_text_element(const char* element, const char* content);
 %token _GUID_STR
 %token _OLDID_STR
 %token _TEXTRTF_STR
+%token _RPY_RAW_CONTAINER_STR
+%token _SIZE
+%token _VALUE
 %token _STRING_LITERAL
 %token _RPY_ARCHIVE_VERSION_STR
 %token _RPY_ARCHIVE_VERSION_NO
@@ -77,7 +80,19 @@ definition: _OBRACE _NAME
             {
                 printf("</%s>\n", $2);
             }
-           ;
+            | _OBRACE _RPY_RAW_CONTAINER_STR
+            '-' _SIZE '=' _INT ';'
+            {
+                printf("<IRPYRawContainer>\n");
+            }
+            values _EBRACE
+            {
+                printf("</IRPYRawContainer>\n");
+            }
+            ;
+
+values:
+      | '-' _VALUE '=' definitions
 
 properties:
             | properties property
@@ -122,7 +137,6 @@ property:   '-' _NAME '=' { printf("<%s>", $2); } definition { printf("</%s>\n",
                 //printf("<_textRTF><![CDATA[%s]]></_textRTF>\n", $4);
                 print_text_element("_textRTF", $4);
             }
-             | definition
             ;
 
 numbers:    { $$ = _strdup(""); }

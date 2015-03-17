@@ -23,6 +23,9 @@ TEXTRTF_STR               "_textRTF"
 RPY_ARCHIVE_VERSION_NO    {D}+"."{D}+"."{D}+
 RPY_ARCHIVE_VERSION_STR   "I-Logix-RPY-Archive version"
 CPP_STR                   "C++"
+RPY_RAW_CONTAINER_STR     "IRPYRawContainer"
+SIZE                      "size"
+VALUE                     "value"
 STRING_LITERAL            \"(\\.|[^\\"])*\"
 NAME                      [a-zA-Z0-9_]+
 CGTIME                    {INT}"."{INT}"."{INT}::{INT}:{INT}:{INT}
@@ -54,6 +57,12 @@ TYPE_CHAR                 "'"[FT ]{1}"'"
 {OLDID_STR}                     return _OLDID_STR;
 
 {TEXTRTF_STR}                   return _TEXTRTF_STR;
+
+{RPY_RAW_CONTAINER_STR}         return _RPY_RAW_CONTAINER_STR;
+
+{SIZE}                          return _SIZE;
+
+{VALUE}                         return _VALUE;
 
 {STRING_LITERAL}                {
                                     yylval.str_string_literal = _strdup(yytext);
