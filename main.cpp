@@ -32,7 +32,8 @@ extern "C"
     // Creates a copy of the string with unescaped strings (backslashes removed).
     char* process_string_literal(const char* str)
     {
-        char* output = (char*) malloc(strlen(str)+1);
+        size_t len = strlen(str);
+        char* output = (char*) malloc(len+1);
         const char* inPtr = str;
         char* outPtr = output;
 
@@ -44,9 +45,30 @@ extern "C"
         while (*inPtr != '\0')
         {
             // If we encounter a backslash and we're not at the end of the string:
-            // skip it and blindly write the character directly after it
+            // skip it and blindly write the character directly after it to allow
+            // escaping the backslash itself with "\\"
             if ( (*inPtr == '\\') && (*(inPtr+1) != '\0') ) {
                 ++inPtr;
+            }
+
+            // Rhapsody 8 spreads strings that are too long (>800 chars)
+            // over several lines. When it does, it uses the special sequence:
+            // 0x01 0x02 0x03 0x0D 0xA (1 2 3 CR LF)
+            // Skip it when/if we encounter it. Also do the same with 1 2 3 LF
+            // because the parser may be converting the CR LF to LF automatically
+            // (it is at least the case under Windows).
+            if (   (*inPtr == 0x1)
+                && (*(inPtr+1) == 0x2)
+                && (*(inPtr+2) == 0x3)
+                && ( (*(inPtr+3) == 0xD) || (*(inPtr+3) == 0xA) )
+                && ( (*(inPtr+4) == 0xA) || (*(inPtr+3) == 0xA) )
+               ) {
+                if (*(inPtr+3) == 0xA) {
+                    inPtr += 4;
+                } else {
+                    inPtr += 5;
+                }
+                continue;
             }
 
             // Copy the char
